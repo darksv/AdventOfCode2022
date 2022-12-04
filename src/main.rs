@@ -2,6 +2,7 @@
 #![feature(iter_array_chunks)]
 
 use std::error::Error;
+use std::ops::RangeInclusive;
 use bstr::ByteSlice;
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -29,6 +30,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             1 => day_01,
             2 => day_02,
             3 => day_03,
+            4 => day_04,
             _ => unimplemented!(),
         };
 
@@ -95,9 +97,9 @@ fn day_02(input: &str) -> (u32, u32) {
 
 
 fn day_03(input: &str) -> (u32, u32) {
-    fn encode(pack: &[u8]) -> u64 {
+    fn encode(pack: &str) -> u64 {
         let mut v = 0;
-        for byte in pack {
+        for byte in pack.bytes() {
             let val = match byte {
                 b'a'..=b'z' => byte - b'a' + 1,
                 b'A'..=b'Z' => byte - b'A' + 1 + 26,
@@ -109,11 +111,12 @@ fn day_03(input: &str) -> (u32, u32) {
     }
 
     fn decode_index(val: u64) -> u32 {
+        debug_assert!(val.leading_zeros() + val.trailing_zeros() + 1 == u64::BITS);
         63 - val.leading_zeros()
     }
 
     let mut part1 = 0;
-    for line in input.as_bytes().lines() {
+    for line in input.lines() {
         let n = line.len();
         let (a, b) = line.split_at(n / 2);
         let a = encode(a);
@@ -121,12 +124,39 @@ fn day_03(input: &str) -> (u32, u32) {
         part1 += decode_index(a & b);
     }
 
-    let mut part2 = 0;
-    for chunk in input.as_bytes().lines().array_chunks() {
-        let [a, b, c]: [u64; 3] = chunk.map(encode);
-        part2 += decode_index(a & b & c);
-    }
-
+    let mut part2 = input
+        .lines()
+        .map(encode)
+        .array_chunks()
+        .map(|[a, b, c]| decode_index(a & b & c))
+        .sum();
 
     (part1, part2)
+}
+
+fn day_04(input: &str) -> (u32, u32) {
+    fn parse_range(elf: &str) -> Option<RangeInclusive<u8>> {
+        let (start, end) = elf.split_once('-')?;
+        Some(start.parse().ok()?..=end.parse().ok()?)
+    }
+
+    let mut fully_overlap = 0;
+    let mut partially_overlap = 0;
+    for line in input.lines() {
+        let (elf1, elf2) = line.split_once(',').unwrap();
+        let range1 = parse_range(elf1).unwrap();
+        let range2 = parse_range(elf2).unwrap();
+
+        let overlap_s2 = range1.contains(range2.start());
+        let overlap_e2 = range1.contains(range2.end());
+        let overlap_s1 = range2.contains(range1.start());
+        let overlap_e1 = range2.contains(range1.end());
+
+        if overlap_s2 && overlap_e2 || overlap_s1 && overlap_e1 {
+            fully_overlap += 1;
+        } else if overlap_s2 || overlap_e2 || overlap_s1 || overlap_e1 {
+            partially_overlap += 1;
+        }
+    }
+    (fully_overlap, fully_overlap + partially_overlap)
 }

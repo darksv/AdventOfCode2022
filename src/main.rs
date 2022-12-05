@@ -2,8 +2,10 @@
 #![feature(iter_array_chunks)]
 
 use std::error::Error;
+use std::fmt::Display;
 use std::ops::RangeInclusive;
-use bstr::ByteSlice;
+use std::str::FromStr;
+use arrayvec::ArrayVec;
 
 fn main() -> Result<(), Box<dyn Error>> {
     for file in std::fs::read_dir("data")? {
@@ -18,27 +20,38 @@ fn main() -> Result<(), Box<dyn Error>> {
             let mut parts = name.split('_');
             let day = parts.next()?.parse::<u32>().ok()?;
             let name = parts.next()?;
-            let part1 = parts.next()?.parse::<u32>().ok()?;
-            let part2 = parts.next()?.parse::<u32>().ok()?;
+            let part1 = parts.next()?;
+            let part2 = parts.next()?;
             (day, name, part1, part2)
         }) else {
             continue;
         };
 
+        fn run<Output: Display + FromStr + PartialEq>(
+            solution: impl Fn(&str) -> (Output, Output),
+            input: &str,
+            (part1, part2): (&str, &str),
+        ) {
+            let start = std::time::Instant::now();
+            let (p1, p2) = solution(&input);
+            let elapsed = start.elapsed();
+            let part1_ok = p1 == part1.parse::<Output>().ok().unwrap();
+            let part2_ok = p2 == part2.parse::<Output>().ok().unwrap();
+
+            println!("PART1: {} ({:>10}  vs  {:>10})", if part1_ok { '🟢' } else { '🔴' }, p1, part1);
+            println!("PART2: {} ({:>10}  vs  {:>10}) in {:>10?}", if part2_ok { '🟢' } else { '🔴' }, p1, part2, elapsed);
+        }
+
+        println!("DAY #{:02} - {}", day, name);
         let data = std::fs::read_to_string(item.path())?;
-        let func = match day {
-            1 => day_01,
-            2 => day_02,
-            3 => day_03,
-            4 => day_04,
+        match day {
+            1 => run(day_01, &data, (part1, part2)),
+            2 => run(day_02, &data, (part1, part2)),
+            3 => run(day_03, &data, (part1, part2)),
+            4 => run(day_04, &data, (part1, part2)),
+            5 => run(day_05, &data, (part1, part2)),
             _ => unimplemented!(),
         };
-
-        let start = std::time::Instant::now();
-        let (p1, p2) = func(&data);
-        let elapsed = start.elapsed();
-
-        dbg!(day, name, p1, p2, p1 == part1, p2 == part2, elapsed);
         println!();
     }
 
@@ -105,7 +118,7 @@ fn day_03(input: &str) -> (u32, u32) {
                 b'A'..=b'Z' => byte - b'A' + 1 + 26,
                 _ => unimplemented!(),
             };
-            v |= (1 << val);
+            v |= 1 << val;
         }
         v
     }
@@ -124,7 +137,7 @@ fn day_03(input: &str) -> (u32, u32) {
         part1 += decode_index(a & b);
     }
 
-    let mut part2 = input
+    let part2 = input
         .lines()
         .map(encode)
         .array_chunks()
@@ -159,4 +172,62 @@ fn day_04(input: &str) -> (u32, u32) {
         }
     }
     (fully_overlap, fully_overlap + partially_overlap)
+}
+
+fn day_05(input: &str) -> (String, String) {
+    let mut stacks: Vec<Vec<char>> = vec![];
+
+    let mut lines = input.lines();
+    for line in lines.by_ref() {
+        if line.is_empty() {
+            break;
+        }
+
+        let num_stacks = (line.len() + 1) / 4;
+
+        if stacks.len() == 0 {
+            for _ in 0..num_stacks {
+                stacks.push(Vec::new());
+            }
+        }
+        for i in 0..num_stacks {
+            let item = match line.as_bytes()[1 + i * 4] as char {
+                item @ 'A'..='Z' => item,
+                ' ' => continue,
+                '0'..='9' => continue,
+                other => unimplemented!("{}", other),
+            };
+            stacks[i].push(item);
+        }
+    }
+
+    stacks.iter_mut().for_each(|s| s.reverse());
+
+    let mut stacks1 = stacks;
+    let mut stacks2 = stacks1.clone();
+
+    for line in lines {
+        let parts: ArrayVec<_, 6> = line.split(' ').collect();
+        let count: usize = parts[1].parse().unwrap();
+        let src: usize = parts[3].parse().unwrap();
+        let dst: usize = parts[5].parse().unwrap();
+
+        for _ in 0..count {
+            let item = stacks1[src - 1].pop().unwrap();
+            stacks1[dst - 1].push(item);
+        }
+
+        for _ in 0..count {
+            let item = stacks2[src - 1].pop().unwrap();
+            stacks2[dst - 1].push(item);
+        }
+
+        let offset = stacks2[dst - 1].len() - count;
+        stacks2[dst - 1][offset..].reverse();
+    }
+
+    (
+        stacks1.iter().map(|it| it.last()).flatten().collect(),
+        stacks2.iter().map(|it| it.last()).flatten().collect(),
+    )
 }

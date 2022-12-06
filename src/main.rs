@@ -2,7 +2,7 @@
 #![feature(iter_array_chunks)]
 
 use std::error::Error;
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
 use std::str::FromStr;
 
 use crate::day01::day_01;
@@ -10,12 +10,14 @@ use crate::day02::day_02;
 use crate::day03::day_03;
 use crate::day04::day_04;
 use crate::day05::day_05;
+use crate::day06::day_06;
 
 mod day01;
 mod day02;
 mod day03;
 mod day04;
 mod day05;
+mod day06;
 
 fn main() -> Result<(), Box<dyn Error>> {
     for file in std::fs::read_dir("data")? {
@@ -37,7 +39,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             continue;
         };
 
-        fn run<Output: Display + FromStr + PartialEq>(
+        fn run<Output: Display + FromStr + PartialEq+Debug>(
             solution: impl Fn(&str) -> (Output, Output),
             input: &str,
             (part1, part2): (&str, &str),
@@ -49,7 +51,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             let part2_ok = p2 == part2.parse::<Output>().ok().unwrap();
 
             println!("PART1: {} ({:>10}  vs  {:>10})", if part1_ok { '🟢' } else { '🔴' }, p1, part1);
-            println!("PART2: {} ({:>10}  vs  {:>10}) in {:>10?}", if part2_ok { '🟢' } else { '🔴' }, p1, part2, elapsed);
+            println!("PART2: {} ({:>10}  vs  {:>10}) in {:>10?}", if part2_ok { '🟢' } else { '🔴' }, p2, part2, elapsed);
         }
 
         println!("DAY #{:02} - {}", day, name);
@@ -60,6 +62,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             3 => run(day_03, &data, (part1, part2)),
             4 => run(day_04, &data, (part1, part2)),
             5 => run(day_05, &data, (part1, part2)),
+            6 => run(day_06, &data, (part1, part2)),
             _ => unimplemented!(),
         };
         println!();

@@ -1,9 +1,14 @@
-use std::collections::HashSet;
-
 fn find_marker(s: &str, n: usize) -> Option<usize> {
-    for (idx, wnd) in s.as_bytes().windows(n).enumerate() {
-        if wnd.iter().collect::<HashSet<_>>().len() == n {
-            return Some(idx + n);
+    assert!(n > 1 && n <= 32);
+    for (offset, window) in s.as_bytes().windows(n).enumerate() {
+        let letters_in_window: u32 = window
+            .iter()
+            .copied()
+            .map(|it| it - b'a')
+            .fold(0, |acc, x| acc | (1 << (x as u32)));
+
+        if letters_in_window.count_ones() == n as u32 {
+            return Some(offset + n);
         }
     }
 

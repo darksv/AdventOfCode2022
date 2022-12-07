@@ -1,5 +1,6 @@
 #![feature(try_blocks)]
 #![feature(iter_array_chunks)]
+#![feature(let_chains)]
 
 use std::error::Error;
 use std::fmt::{Debug, Display};
@@ -11,6 +12,7 @@ use crate::day03::day_03;
 use crate::day04::day_04;
 use crate::day05::day_05;
 use crate::day06::day_06;
+use crate::day07::day_07;
 
 mod day01;
 mod day02;
@@ -18,6 +20,7 @@ mod day03;
 mod day04;
 mod day05;
 mod day06;
+mod day07;
 
 fn main() -> Result<(), Box<dyn Error>> {
     for file in std::fs::read_dir("data")? {
@@ -63,6 +66,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             4 => run(day_04, &data, (part1, part2)),
             5 => run(day_05, &data, (part1, part2)),
             6 => run(day_06, &data, (part1, part2)),
+            7 => run(day_07, &data, (part1, part2)),
             _ => unimplemented!(),
         };
         println!();

@@ -14,6 +14,8 @@ use crate::day05::day_05;
 use crate::day06::day_06;
 use crate::day07::day_07;
 use crate::day08::day_08;
+use crate::day09::day_09;
+use crate::day10::day_10;
 
 mod day01;
 mod day02;
@@ -23,6 +25,8 @@ mod day05;
 mod day06;
 mod day07;
 mod day08;
+mod day09;
+mod day10;
 
 fn main() -> Result<(), Box<dyn Error>> {
     for file in std::fs::read_dir("data")? {
@@ -44,16 +48,16 @@ fn main() -> Result<(), Box<dyn Error>> {
             continue;
         };
 
-        fn run<Output: Display + FromStr + PartialEq+Debug>(
-            solution: impl Fn(&str) -> (Output, Output),
+        fn run<Output1: Display + FromStr + PartialEq+Debug, Output2: Display + FromStr + PartialEq+Debug>(
+            solution: impl Fn(&str) -> (Output1, Output2),
             input: &str,
             (part1, part2): (&str, &str),
         ) {
             let start = std::time::Instant::now();
             let (p1, p2) = solution(&input);
             let elapsed = start.elapsed();
-            let part1_ok = p1 == part1.parse::<Output>().ok().unwrap();
-            let part2_ok = p2 == part2.parse::<Output>().ok().unwrap();
+            let part1_ok = p1 == part1.parse::<Output1>().ok().unwrap();
+            let part2_ok = p2 == part2.parse::<Output2>().ok().unwrap();
 
             println!("PART1: {} ({:>10}  vs  {:>10})", if part1_ok { '🟢' } else { '🔴' }, p1, part1);
             println!("PART2: {} ({:>10}  vs  {:>10}) in {:>10?}", if part2_ok { '🟢' } else { '🔴' }, p2, part2, elapsed);
@@ -70,6 +74,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             6 => run(day_06, &data, (part1, part2)),
             7 => run(day_07, &data, (part1, part2)),
             8 => run(day_08, &data, (part1, part2)),
+            9 => run(day_09, &data, (part1, part2)),
+            10 => run(day_10, &data, (part1, part2)),
             _ => unimplemented!(),
         };
         println!();

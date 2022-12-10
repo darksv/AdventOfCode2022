@@ -1,0 +1,1 @@
+pub(crate) fn day_09(input: &str) -> (usize, usize) { (0, 0) }

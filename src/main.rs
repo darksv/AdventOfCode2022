@@ -16,6 +16,7 @@ use crate::day07::day_07;
 use crate::day08::day_08;
 use crate::day09::day_09;
 use crate::day10::day_10;
+use crate::day11::day_11;
 
 mod day01;
 mod day02;
@@ -27,6 +28,7 @@ mod day07;
 mod day08;
 mod day09;
 mod day10;
+mod day11;
 
 fn main() -> Result<(), Box<dyn Error>> {
     for file in std::fs::read_dir("data")? {
@@ -76,6 +78,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             8 => run(day_08, &data, (part1, part2)),
             9 => run(day_09, &data, (part1, part2)),
             10 => run(day_10, &data, (part1, part2)),
+            11 => run(day_11, &data, (part1, part2)),
             _ => unimplemented!(),
         };
         println!();
